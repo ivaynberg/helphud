@@ -1,0 +1,75 @@
+.helphud-mask {
+    display: block;
+    position: absolute;
+    z-index: 999997;
+    background-color: #000;
+    opacity: 0.8;
+}
+
+.helphud-overlay {
+    display: block;
+    position: absolute;
+    z-index: 999999;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.helphud-pointer {
+    display: block;
+    position: absolute;
+    z-index: 999998;
+    margin: 0;
+}
+
+.helphud-pointer.helphud-pointer-bottom {
+    border-top: 1px white solid;
+}
+
+.helphud-pointer.helphud-pointer-left {
+    border-right: 1px white solid;
+}
+
+.helphud-pointer.helphud-pointer-right {
+    border-left: 1px white solid;
+}
+
+.helphud-pointer.helphud-pointer-top {
+    border-bottom: 1px white solid;
+}
+
+.helphud-tooltip {
+    position: absolute;
+    display: block;
+    max-width: 200px;
+    color: white;
+    z-index: 999998;
+}
+
+.helphud-pointer.helphud-pointer:before {
+    content: ".";
+    display: inline-block;
+    background-color: white;
+    overflow: hidden;
+    position: absolute;
+    visibility: visible;
+}
+
+.helphud-pointer.helphud-pointer-bottom:before,
+.helphud-pointer.helphud-pointer-top:before {
+    width: 1px;
+    height: 100%;
+    left: 50%;
+}
+
+.helphud-pointer.helphud-pointer-left:before,
+.helphud-pointer.helphud-pointer-right:before {
+    height: 1px;
+    width: 100%;
+    top: 50%;
+    left: 0;
+}
+
+
