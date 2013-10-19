@@ -222,7 +222,7 @@
             // build the tooltip
 
             var $text = $("<div class='helphud-tooltip' style='left:-10000px'></div>");
-            $text.html($e.data("intro"));
+            $text.html($element.data("intro"));
 
             $body.append($text); // add to dom before positioning so it can autosize
 
