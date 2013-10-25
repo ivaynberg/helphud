@@ -130,8 +130,66 @@
 
     var hide = function () {
         $(window).off("resize.helphud");
-        $(".helphud-mask,.helphud-pointer,.helphud-tooltip,.helphud-overlay").remove();
+        var $overlay = $(".helphud-overlay");
+
+        if ($overlay.data("more")) {
+            hideMore($overlay.data("more"));
+        }
+
+        // reparent content we mightve moved into the tooltips from content nodes
+        $overlay.find(".helphud-tooltip,[data-from]").each(function () {
+            var $tooltip = $(this);
+            var $holder = $($tooltip.data("from"));
+            $tooltip.contents().each(function () {
+                $holder.append(this);
+            });
+        });
+
+        $(".helphud-overlay").remove();
     };
+
+    var center = function ($element) {
+        $element.css({
+            position: "absolute",
+            top: Math.max(0, (($(window).height() - $element.outerHeight()) / 2) +
+                $(window).scrollTop()) + "px",
+            left: Math.max(0, (($(window).width() - $element.outerWidth()) / 2) +
+                $(window).scrollLeft()) + "px"
+        });
+    };
+
+
+    var showMore = function (id) {
+        var $overlay = $(".helphud-overlay");
+        $overlay.data("more", id);
+
+        var $mask = $("<div class='helphud-more-mask'></div>");
+        $overlay.append($mask);
+
+        var $container = $("<div class='helphud-more-container'><div class='helphud-more-body'></div><div class='helphud-more-commands'><a class='helphud-more-close' href='#'>Close</a></div></div>");
+
+        var $body = $container.find(".helphud-more-body");
+
+        $("#" + id).contents().each(function () {
+            $body.append(this);
+        });
+
+        $overlay.append($container);
+        center($container);
+    };
+
+    var hideMore = function () {
+        var $overlay = $(".helphud-overlay");
+        var $more = $("#" + $overlay.data("more"));
+        var $body = $overlay.find(".helphud-more-body");
+        $body.contents().each(function () {
+            $more.append(this);
+        });
+        $overlay.find(".helphud-more-mask").remove();
+        $overlay.find(".helphud-more-container").remove();
+        $overlay.removeData("more");
+    };
+
 
     var show = function () {
         var opts = {
@@ -147,6 +205,39 @@
         var plane = new Plane($container);
 
         var $elements = $container.find('*[data-intro]');
+
+
+        // build the overlay
+
+        var $overlay = $("<div class='helphud-overlay'></div>");
+        $overlay.on("click", function (e) {
+            var $target = $(e.target);
+
+            var more = $target.data("more");
+            if (more) {
+                showMore(more);
+                e.preventDefault();
+                return;
+            }
+
+            if ($target.hasClass("helphud-more-close")) {
+                hideMore();
+                e.preventDefault();
+                return;
+            }
+
+
+            var keep = ($target.hasClass("helphud-ignore") ||
+                $target.parents(".helphud-ignore").length > 0 ||
+                $target.hasClass("helphud-more-container") ||
+                $target.parents(".helphud-more-container").length > 0 ||
+                $target.hasClass("helphud-more-mask"));
+
+            if (keep === false) {
+                hide();
+            }
+        });
+        $body.append($overlay);
 
         // build the mask geometry
 
@@ -164,7 +255,7 @@
                 width: r.width,
                 height: r.height
             });
-            $body.append(e);
+            $overlay.append(e);
         });
 
         // build the pointers and tooltips
@@ -217,14 +308,23 @@
                     }).addClass("helphud-pointer-bottom");
             }
 
-            $body.append($pointer);
+            $overlay.append($pointer);
 
             // build the tooltip
 
             var $text = $("<div class='helphud-tooltip' style='left:-10000px'></div>");
-            $text.html($element.data("intro"));
+            var content = $element.data("intro");
 
-            $body.append($text); // add to dom before positioning so it can autosize
+            if (content.length > 0 && content.charAt(0) === '#') {
+                $(content).contents().each(function () {
+                    $text.append(this);
+                });
+                $text.data("from", content);
+            } else {
+                $text.html($element.data("intro"));
+            }
+
+            $overlay.append($text); // add to dom before positioning so it can autosize
 
             switch (position) {
                 case "left":
@@ -253,15 +353,20 @@
             }
         });
 
-        // build the overlay
+        // if we have 'more' content, show that too
 
-        var overlay = $("<div class='helphud-overlay'></div>");
-        overlay.on("click", hide);
-        $body.append(overlay);
+        if ($overlay.data("more")) {
+            showMore($overlay.data("more"));
+        }
 
         $(window).on("resize.helphud", function () {
+            var more = $overlay.data("more");
             hide();
             show.apply($container);
+            if (more) {
+                showMore(more);
+            }
+
         });
     };
 
