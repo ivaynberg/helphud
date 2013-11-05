@@ -39,17 +39,26 @@ module.exports = function (grunt) {
             }
         },
         watch: {
-            files: ['<%= jshint.files %>'],
-            tasks: ['jshint']
+            files: ['src/**/*'],
+            tasks: ['jshint', 'concat', 'uglify']
+        },
+        connect: {
+            server: {
+                options: {
+                    port: 8282,
+                    base: '.'
+                }
+            }
         }
-    });
+     });
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-jsbeautifier');
+    grunt.loadNpmTasks('grunt-contrib-connect');
 
     grunt.registerTask('default', ['jshint', 'concat', 'uglify']);
-
+    grunt.registerTask('dev', ['connect', 'watch']);
 };
