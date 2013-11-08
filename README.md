@@ -12,11 +12,58 @@ HelpHud solves the two problems above by not using a solid mask, instead it mask
 
 Add `jquery.js`, `helphud.js`, and `helphud.css` to your html.
 
-Define help by putting `data-intro` attribute on elements.
+###Defininig Help Text
 
-Define position of the tooltip using `data-position` attribute which can be one of the following: `top`, `bottom`, `left`, `right`.
+Short snippets of help text can be defined by adding `data-intro` attribute to an html tag:
 
-##Use
+    <input type='submit' value='Remove'
+           data-intro='Click here to remove the item from your cart.'/>
+
+If you wish to define a longer help text or use html inside it you may put it into a `div` with a defined `id` attribute and:
+
+
+    <div id='help1'>
+	    <img src='...'/>
+    	Click here to <strong>remove</strong> the item from your cart.
+    </div>
+
+
+and provide the value of the id attribute in `data-intro` prefixed with a `#`:
+
+    <input type='submit' value='Remove' data-intro='#help1'/>
+
+
+###Defining Help Text Popups
+
+In situation where a single help popup is not enough HelpHud can also show additional help via a modal popup, for example:
+
+
+    <div id='help1'>
+    	Click here to <strong>remove</strong> the item from your cart.
+    	To learn more about removing items from the cart
+    	please click <a href='#' data-more='help1-1'>here</a>.
+		
+		<div class='helphud-more' id='help1-1'>
+    	    Removing items from the cart is permanent and cannot be undone.
+	        The cart's total and subtotals will be recalculated once the
+	        removal is performed
+	    </div>
+    </div>
+
+when the user brings up the HelpHud and click on the 'here' link they will get the contents of the `help1-1` div displayed in a modal window. This feature can be used to embed additional text content or other resources such as help videos.
+
+To use this feature define a `div` with an `id` and the `helphud-more` class inside another help `div`. To trigger this content to show up you must add a `data-more` attribute with the `id` of the div to a tag inside the help tooltip.
+
+###Positioning
+
+By default all tooltips will show below the element. This behavior can be changed by adding a `data-position` attribute which can be one of the following: `top`, `bottom`, `left`, `right`. For example:
+
+    <input type='submit' value='Remove'
+           data-intro='Click here to remove the item from your cart'
+           data-position='left'/>
+
+##Triggering
+
 Call `$("body").helphud("show")` to trigger the help. Click anywhere on the screen to dismiss, or call `$("body").helphud("hide")`.
 
 ##License
