@@ -95,3 +95,7 @@
 }
 
 .helphud-more { display: none; }
+
+.helphud-panel { display:none; z-index: 4; }
+
+.helphud-marker { display: none; }

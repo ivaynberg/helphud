@@ -151,7 +151,20 @@
 
     var destroy = function () {
         $(window).off(".helphud");
-        var $overlay = $(".helphud-overlay");
+        var $overlay = $(".helphud-overlay"),
+            $container = $overlay.data("container");
+
+        // hide panels (put them back)
+
+        $overlay.find(".helphud-panel").each(function() {
+            var $panel=$(this),
+                $marker=$panel.data("marker");
+
+            $panel.toggle(false);
+            $marker.before($panel).remove();
+        });
+
+        // hide more
 
         if ($overlay.data("more")) {
             hideMore($overlay.data("more"));
@@ -385,6 +398,13 @@
         if ($overlay.data("more")) {
             showMore($overlay.data("more"));
         }
+
+        // show panels
+
+        $container.find(".helphud-panel").each(function() {
+            var $marker=$("<div class='helphud-marker'></div>");
+            $(this).data("marker", $marker).before($marker).appendTo($overlay).toggle(true);
+        });
 
         // handle window resizing
 

@@ -32,6 +32,16 @@ and provide the value of the id attribute in `data-intro` prefixed with a `#`:
 
     <input type='submit' value='Remove' data-intro='#help1'/>
 
+###Defining Help Panels
+Help panels are chunks of markup that are not attached to any particular element. They usually have a fixed or an absolute position and are shown when helphud is shown.
+
+To define a help panel simply assign `helphud-panel` class to a tag. When helphud is shown the tag will be moved into the helphud overlay dom. This action will be undone when helphud is closed.
+
+For Example:
+
+    <div class="helphud-panel" style="position:fixed; left:20px; top: 20px;">
+        I am a free-floating remark that is visible when helphud is visible
+    </div>
 
 ###Defining Help Text Popups
 
@@ -65,6 +75,13 @@ By default all tooltips will show below the element. This behavior can be change
 ##Triggering
 
 Call `$("body").helphud("show")` to trigger the help. Click anywhere on the screen to dismiss, or call `$("body").helphud("hide")`.
+
+##Events
+
+* `helphud-shown` fired when helphud is shown
+
+* `helphud-hidden` fired when helphud is hidden
+
 
 ##License
 The MIT License (MIT)
