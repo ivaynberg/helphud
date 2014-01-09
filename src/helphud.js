@@ -128,8 +128,29 @@
         return result + "]";
     };
 
+    var throttle = function (quiet, fn) {
+        var timer;
+        return function () {
+            if (timer) window.clearTimeout(timer);
+            timer = window.setTimeout(function () {
+                timer = undefined;
+                fn();
+            }, quiet);
+        };
+    };
+
+
     var hide = function () {
-        $(window).off("resize.helphud");
+        var $overlay = $(".helphud-overlay"),
+            $container = $overlay.data("container");
+        $overlay.fadeOut(function () {
+            destroy.apply(this, arguments);
+            $container.trigger($.Event("helphud-hidden"));
+        });
+    };
+
+    var destroy = function () {
+        $(window).off(".helphud");
         var $overlay = $(".helphud-overlay");
 
         if ($overlay.data("more")) {
@@ -145,7 +166,7 @@
             });
         });
 
-        $(".helphud-overlay").remove();
+        $overlay.remove();
     };
 
     var center = function ($element) {
@@ -190,8 +211,13 @@
         $overlay.removeData("more");
     };
 
-
     var show = function () {
+        build.apply(this, arguments);
+        $(".helphud-overlay").fadeIn();
+        this.trigger($.Event("helphud-shown"));
+    };
+
+    var build = function () {
         var opts = {
             margin: 3,
             stick: 30,
@@ -209,7 +235,7 @@
 
         // build the overlay
 
-        var $overlay = $("<div class='helphud-overlay'></div>");
+        var $overlay = $("<div class='helphud-overlay' style='display:none'></div>");
         $overlay.on("click", function (e) {
             var $target = $(e.target);
 
@@ -237,6 +263,7 @@
                 hide();
             }
         });
+        $overlay.data("container", $container);
         $body.append($overlay);
 
         // build the mask geometry
@@ -359,16 +386,22 @@
             showMore($overlay.data("more"));
         }
 
-        $(window).on("resize.helphud", function () {
+        // handle window resizing
+
+        var refresh = function () {
             var more = $overlay.data("more");
-            hide();
-            show.apply($container);
+            destroy.apply($container);
+            build.apply($container);
+            $(".helphud-overlay").toggle(true);
             if (more) {
                 showMore(more);
             }
-
-        });
+        };
+        $(window)
+            .on("resize.helphud", throttle(100, refresh))
+            .on("scroll.helphud", throttle(100, refresh));
     };
+
 
     // jquery bridge
 
@@ -379,7 +412,7 @@
             return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
         }
         else {
-            $.error('Method ' + method + ' does not exist on jQuery.modalize');
+            $.error('Method ' + method + ' does not exist on jQuery.helphud');
         }
     };
 })(jQuery, window);
