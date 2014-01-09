@@ -226,7 +226,7 @@
 
     var show = function () {
         build.apply(this, arguments);
-        $(".helphud-overlay").fadeIn();
+        $(".helphud-overlay").toggle(true).fadeIn();
         this.trigger($.Event("helphud-shown"));
     };
 
@@ -248,7 +248,7 @@
 
         // build the overlay
 
-        var $overlay = $("<div class='helphud-overlay' style='display:none'></div>");
+        var $overlay = $("<div class='helphud-overlay'></div>");
         $overlay.on("click", function (e) {
             var $target = $(e.target);
 
