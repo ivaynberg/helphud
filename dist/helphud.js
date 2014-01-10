@@ -156,9 +156,9 @@
 
         // hide panels (put them back)
 
-        $overlay.find(".helphud-panel").each(function() {
-            var $panel=$(this),
-                $marker=$panel.data("marker");
+        $overlay.find(".helphud-panel").each(function () {
+            var $panel = $(this),
+                $marker = $panel.data("marker");
 
             $panel.toggle(false);
             $marker.before($panel).remove();
@@ -401,9 +401,12 @@
 
         // show panels
 
-        $container.find(".helphud-panel:visible").each(function() {
-            var $marker=$("<div class='helphud-marker'></div>");
-            $(this).data("marker", $marker).before($marker).appendTo($overlay).toggle(true);
+        $container.find(".helphud-panel").each(function () {
+            var $panel = $(this);
+            if ($panel.parent().is(":visible")) {
+                var $marker = $("<div class='helphud-marker'></div>");
+                $(this).data("marker", $marker).before($marker).appendTo($overlay).toggle(true);
+            }
         });
 
         // handle window resizing
