@@ -145,7 +145,7 @@
             $container = $overlay.data("container");
         $overlay.fadeOut(function () {
             destroy.apply(this, arguments);
-            $container.trigger($.Event("helphud-hidden"));
+            $container.removeClass("helphud-shown").trigger($.Event("helphud-hidden"));
         });
     };
 
@@ -227,7 +227,7 @@
     var show = function () {
         build.apply(this, arguments);
         $(".helphud-overlay").toggle(true).fadeIn();
-        this.trigger($.Event("helphud-shown"));
+        this.addClass("helphud-shown").trigger($.Event("helphud-shown"));
     };
 
     var build = function () {

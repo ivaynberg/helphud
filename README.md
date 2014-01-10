@@ -82,6 +82,10 @@ Call `$("body").helphud("show")` to trigger the help. Click anywhere on the scre
 
 * `helphud-hidden` fired when helphud is hidden
 
+##Other
+
+When helphud is opened `helphud-shown` css class will be added to the element on which helphud was called. This class will be removed when helphud is closed.
+
 
 ##License
 The MIT License (MIT)
