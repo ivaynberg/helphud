@@ -243,7 +243,7 @@
 
         var plane = new Plane($container);
 
-        var $elements = $container.find('*[data-intro]');
+        var $elements = $container.find('*[data-intro]:visible');
 
 
         // build the overlay
@@ -401,7 +401,7 @@
 
         // show panels
 
-        $container.find(".helphud-panel").each(function() {
+        $container.find(".helphud-panel:visible").each(function() {
             var $marker=$("<div class='helphud-marker'></div>");
             $(this).data("marker", $marker).before($marker).appendTo($overlay).toggle(true);
         });
