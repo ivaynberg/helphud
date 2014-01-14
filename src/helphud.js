@@ -226,7 +226,7 @@
 
     var show = function () {
         build.apply(this, arguments);
-        $(".helphud-overlay").toggle(true).fadeIn();
+        $(".helphud-overlay").toggle(false).fadeIn();
         this.addClass("helphud-shown").trigger($.Event("helphud-shown"));
     };
 
