@@ -143,9 +143,12 @@
     var hide = function () {
         var $overlay = $(".helphud-overlay"),
             $container = $overlay.data("container");
-        $overlay.fadeOut(function () {
-            destroy.apply(this, arguments);
-            $container.removeClass("helphud-shown").trigger($.Event("helphud-hidden"));
+        $container.removeClass("helphud-shown").trigger($.Event("helphud-hidden"));
+        $overlay.fadeOut({
+            complete: function () {
+                destroy.apply(this, arguments);
+
+            }
         });
     };
 
@@ -225,9 +228,12 @@
     };
 
     var show = function () {
+        var self=this;
         build.apply(this, arguments);
-        $(".helphud-overlay").toggle(false).fadeIn();
-        this.addClass("helphud-shown").trigger($.Event("helphud-shown"));
+        $(".helphud-overlay").toggle(false).fadeIn({
+            complete: function() {self.addClass("helphud-shown").trigger($.Event("helphud-shown"));}
+        });
+
     };
 
     var build = function () {
