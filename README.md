@@ -72,6 +72,16 @@ By default all tooltips will show below the element. This behavior can be change
            data-intro='Click here to remove the item from your cart'
            data-position='left'/>
 
+The other supported position is `center` which places the tooltip into the middle of the element and does not build pointer lines.
+
+##Highlighting
+
+By default HelpHud highlights the element to which the tooltip is attached. This behavior can be overridden by adding a `data-highlight='false'` option to the element.
+For example:
+
+    <input type='submit' value='Remove' data-intro='Go!` data-highlight='false'/>
+
+
 ##Triggering
 
 Call `$("body").helphud("show")` to trigger the help. Click anywhere on the screen to dismiss, or call `$("body").helphud("hide")`.
