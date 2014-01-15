@@ -304,7 +304,9 @@
         // build the mask geometry
 
         $elements.each(function () {
-            plane.subtract(new Rect($(this)).explode(opts.margin));
+            if ($(this).data("highlight")!==false) {
+                plane.subtract(new Rect($(this)).explode(opts.margin));
+            }
         });
 
         // add the mask into dom
@@ -324,96 +326,109 @@
 
         $elements.each(function () {
 
-            var $element = $(this);
-            var offset = $element.offset();
-            var left = offset.left - opts.margin;
-            var top = offset.top - opts.margin;
-            var width = $element.outerWidth() + opts.margin * 2;
-            var height = $element.outerHeight() + opts.margin * 2;
-            var position = $element.data("position") || "bottom";
+                var $element = $(this);
+                var offset = $element.offset();
+                var left = offset.left - opts.margin;
+                var top = offset.top - opts.margin;
+                var width = $element.outerWidth() + opts.margin * 2;
+                var height = $element.outerHeight() + opts.margin * 2;
+                var position = $element.data("position") || "bottom";
 
-            // build the pointer
+                // build the pointer
 
-            var $pointer = $("<div class='helphud-pointer' ></div>");
+                var $pointer = $("<div class='helphud-pointer' ></div>");
 
-            switch (position) {
-                case "left":
-                    $pointer.css({
-                        top: top,
-                        left: left - opts.stick - opts.barrier + "px",
-                        width: opts.stick + "px",
-                        height: height
-                    }).addClass("helphud-pointer-left");
-                    break;
-                case "right":
-                    $pointer.css({
-                        top: top,
-                        left: left + width + opts.barrier + "px",
-                        width: opts.stick + "px",
-                        height: height
-                    }).addClass("helphud-pointer-right");
-                    break;
-                case "top":
-                    $pointer.css({
-                        top: top - opts.stick - opts.barrier + "px",
-                        left: left + "px",
-                        width: width + "px",
-                        height: opts.stick + "px"
-                    }).addClass("helphud-pointer-top");
-                    break;
-                default:
-                    $pointer.css({
-                        top: top + height + opts.barrier + "px",
-                        left: left + "px",
-                        width: width + "px",
-                        height: opts.stick + "px"
-                    }).addClass("helphud-pointer-bottom");
+                switch (position) {
+                    case "left":
+                        $pointer.css({
+                            top: top,
+                            left: left - opts.stick - opts.barrier + "px",
+                            width: opts.stick + "px",
+                            height: height
+                        }).addClass("helphud-pointer-left");
+                        break;
+                    case "right":
+                        $pointer.css({
+                            top: top,
+                            left: left + width + opts.barrier + "px",
+                            width: opts.stick + "px",
+                            height: height
+                        }).addClass("helphud-pointer-right");
+                        break;
+                    case "top":
+                        $pointer.css({
+                            top: top - opts.stick - opts.barrier + "px",
+                            left: left + "px",
+                            width: width + "px",
+                            height: opts.stick + "px"
+                        }).addClass("helphud-pointer-top");
+                        break;
+                    case "center":
+                        $pointer = undefined;
+                        break;
+                    default:
+                        $pointer.css({
+                            top: top + height + opts.barrier + "px",
+                            left: left + "px",
+                            width: width + "px",
+                            height: opts.stick + "px"
+                        }).addClass("helphud-pointer-bottom");
+                }
+
+                if ($pointer) {
+                    $overlay.append($pointer);
+                }
+
+                // build the tooltip
+
+                var $text = $("<div class='helphud-tooltip' style='left:-10000px'></div>");
+                var content = $element.data("intro");
+
+                if (content.length > 0 && content.charAt(0) === '#') {
+                    $(content).contents().each(function () {
+                        $text.append(this);
+                    });
+                    $text.data("from", content);
+                } else {
+                    $text.html($element.data("intro"));
+                }
+
+                $overlay.append($text); // add to dom before positioning so it can autosize
+
+                switch (position) {
+                    case "left":
+                        $text.css({
+                            top: top + height / 2 - $text.outerHeight() / 2 + "px",
+                            left: left - opts.barrier - opts.stick - $text.outerWidth() + "px"
+                        });
+                        break;
+                    case "right":
+                        $text.css({
+                            top: top + height / 2 - $text.outerHeight() / 2 + "px",
+                            left: left + width + opts.barrier + opts.stick + "px"
+                        });
+                        break;
+                    case "top":
+                        $text.css({
+                            top: top - opts.barrier - opts.stick - $text.outerHeight() + "px",
+                            left: left + width / 2 - $text.outerWidth() / 2 + "px"
+                        });
+                        break;
+                    case "center":
+                        $text.css({
+                            top: top + height / 2 - $text.outerHeight() / 2 + "px",
+                            left: left + width / 2 - $text.outerWidth() / 2 + "px"
+                        });
+                        break;
+                    default:
+                        $text.css({
+                            top: top + height + opts.barrier + opts.stick + "px",
+                            left: left + width / 2 - $text.outerWidth() / 2 + "px"
+                        });
+                }
             }
-
-            $overlay.append($pointer);
-
-            // build the tooltip
-
-            var $text = $("<div class='helphud-tooltip' style='left:-10000px'></div>");
-            var content = $element.data("intro");
-
-            if (content.length > 0 && content.charAt(0) === '#') {
-                $(content).contents().each(function () {
-                    $text.append(this);
-                });
-                $text.data("from", content);
-            } else {
-                $text.html($element.data("intro"));
-            }
-
-            $overlay.append($text); // add to dom before positioning so it can autosize
-
-            switch (position) {
-                case "left":
-                    $text.css({
-                        top: top + height / 2 - $text.outerHeight() / 2 + "px",
-                        left: left - opts.barrier - opts.stick - $text.outerWidth() + "px"
-                    });
-                    break;
-                case "right":
-                    $text.css({
-                        top: top + height / 2 - $text.outerHeight() / 2 + "px",
-                        left: left + width + opts.barrier + opts.stick + "px"
-                    });
-                    break;
-                case "top":
-                    $text.css({
-                        top: top - opts.barrier - opts.stick - $text.outerHeight() + "px",
-                        left: left + width / 2 - $text.outerWidth() / 2 + "px"
-                    });
-                    break;
-                default:
-                    $text.css({
-                        top: top + height + opts.barrier + opts.stick + "px",
-                        left: left + width / 2 - $text.outerWidth() / 2 + "px"
-                    });
-            }
-        });
+        )
+        ;
 
         // if we have 'more' content, show that too
 
@@ -448,7 +463,7 @@
     };
 
 
-    // jquery bridge
+// jquery bridge
 
     var methods = { show: show, hide: hide };
 
@@ -460,4 +475,5 @@
             $.error('Method ' + method + ' does not exist on jQuery.helphud');
         }
     };
-})(jQuery, window);
+})
+    (jQuery, window);
