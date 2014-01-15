@@ -228,10 +228,12 @@
     };
 
     var show = function () {
-        var self=this;
+        var self = this;
         build.apply(this, arguments);
         $(".helphud-overlay").toggle(false).fadeIn({
-            complete: function() {self.addClass("helphud-shown").trigger($.Event("helphud-shown"));}
+            complete: function () {
+                self.addClass("helphud-shown").trigger($.Event("helphud-shown"));
+            }
         });
 
     };
@@ -255,22 +257,36 @@
         // build the overlay
 
         var $overlay = $("<div class='helphud-overlay'></div>");
+        $overlay.height($(document).height());
         $overlay.on("click", function (e) {
             var $target = $(e.target);
 
-            var more = $target.data("more");
+            var $layers = $target.add($target.parentsUntil(".helphud-overlay"));
+
+
+            var more;
+            $layers.each(function () {
+                more = $(this).data("more");
+                return more === undefined;
+            });
+
             if (more) {
                 showMore(more);
                 e.preventDefault();
                 return;
             }
 
-            if ($target.hasClass("helphud-more-close")) {
+            var moreClose = false;
+            $layers.each(function () {
+                moreClose = $(this).hasClass("helphud-more-close");
+                return moreClose === false;
+            });
+
+            if (moreClose) {
                 hideMore();
                 e.preventDefault();
                 return;
             }
-
 
             var keep = ($target.hasClass("helphud-ignore") ||
                 $target.parents(".helphud-ignore").length > 0 ||
