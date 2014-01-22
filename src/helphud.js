@@ -207,9 +207,15 @@
 
         var $body = $container.find(".helphud-more-body");
 
-        $("#" + id).contents().each(function () {
-            $body.append(this);
-        });
+        var $marker = $("<div class='helphud-marker'></div>");
+        var $more = $("#" + id);
+
+        $more.trigger($.Event("helphud-shown"))
+            .data("marker", $marker)
+            .before($marker)
+            .removeClass("helphud-more");
+
+        $body.append($more);
 
         $overlay.append($container);
         center($container);
@@ -218,10 +224,10 @@
     var hideMore = function () {
         var $overlay = $(".helphud-overlay");
         var $more = $("#" + $overlay.data("more"));
-        var $body = $overlay.find(".helphud-more-body");
-        $body.contents().each(function () {
-            $more.append(this);
-        });
+        var $marker = $more.data("marker");
+        $more.trigger($.Event("helphud-hidden"));
+        $marker.before($more).remove();
+        $more.removeData("marker").addClass("helphud-more");
         $overlay.find(".helphud-more-mask").remove();
         $overlay.find(".helphud-more-container").remove();
         $overlay.removeData("more");
@@ -304,7 +310,7 @@
         // build the mask geometry
 
         $elements.each(function () {
-            if ($(this).data("highlight")!==false) {
+            if ($(this).data("highlight") !== false) {
                 plane.subtract(new Rect($(this)).explode(opts.margin));
             }
         });
