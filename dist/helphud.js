@@ -1,4 +1,4 @@
-(function ($, window) {
+(function ($, document, window) {
 
     var Rect = function () {
         var offset, e;
@@ -202,6 +202,7 @@
 
         var $mask = $("<div class='helphud-more-mask'></div>");
         $overlay.append($mask);
+        $mask.height($overlay.height()).bind("click", hideMore);
 
         var $container = $("<div class='helphud-more-container'><div class='helphud-more-body'></div><div class='helphud-more-commands'><a class='helphud-more-close' href='#'>Close</a></div></div>");
 
@@ -263,7 +264,7 @@
         // build the overlay
 
         var $overlay = $("<div class='helphud-overlay'></div>");
-        $overlay.height($(document).height());
+        $overlay.height(Math.max($(document).height(), $(window).height()));
         $overlay.on("click", function (e) {
             var $target = $(e.target);
 
@@ -469,7 +470,7 @@
     };
 
 
-// jquery bridge
+    // jquery bridge
 
     var methods = { show: show, hide: hide };
 
@@ -481,5 +482,4 @@
             $.error('Method ' + method + ' does not exist on jQuery.helphud');
         }
     };
-})
-    (jQuery, window);
+})(jQuery, document, window);
