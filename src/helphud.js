@@ -258,7 +258,16 @@
 
         var plane = new Plane($container);
 
-        var $elements = $container.find('*[data-intro]:visible');
+        var keySet = [];
+    	$(this).find('*[data-intro]:visible').each(function(){
+    		var key = $(this).attr('data-intro');
+    		var str = "*[data-intro=\""+key+"\"]:visible:first";
+    		if($.inArray(str, keySet) === -1) {
+    			keySet.push(str);
+    		}
+    	});
+
+        var $elements = keySet.length > 0 ? $container.find(keySet.join(',')) : $container.find('*[data-intro]:visible');
 
 
         // build the overlay
