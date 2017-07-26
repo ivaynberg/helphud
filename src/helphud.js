@@ -397,7 +397,10 @@
 
                 // build the tooltip
 
-                var $text = $("<div class='helphud-tooltip' style='left:-10000px'></div>");
+                var rootId = "";
+                try {rootId = "helpid-"+$element.attr('data-intro').substring(1);} catch(err) {}
+                
+                var $text = $("<div class='helphud-tooltip "+rootId+"' style='left:-10000px'></div>");;
                 var content = $element.data("intro");
 
                 if (content.length > 0 && content.charAt(0) === '#') {
