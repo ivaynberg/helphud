@@ -1,4 +1,5 @@
-(function ($, document, window) {
+(function ($, document, window, undefined) {
+    "use strict";
 
     var Rect = function () {
         var offset, e;
@@ -139,6 +140,11 @@
         };
     };
 
+    var opts = {
+        margin: 3,
+        stick: 30,
+        barrier: 5
+    };
 
     var hide = function () {
         var $overlay = $(".helphud-overlay"),
@@ -202,7 +208,7 @@
 
         var $mask = $("<div class='helphud-more-mask'></div>");
         $overlay.append($mask);
-        $mask.height($overlay.height()).bind("click", hideMore);
+        $mask.bind("click", hideMore);
 
         var $container = $("<div class='helphud-more-container'><div class='helphud-more-body'></div><div class='helphud-more-commands'><a class='helphud-more-close' href='#'>Close</a></div></div>");
 
@@ -219,8 +225,20 @@
         $body.append($more);
 
         $overlay.append($container);
-        center($container);
+        
+        positionMore($overlay);
     };
+
+    function positionMore($overlay) {
+        var $mask=$overlay.find("div.helphud-more-mask");
+        if ($mask.length) {
+            $mask.height($overlay.height());
+        }
+        var $container=$overlay.find("div.helphud-more-container");
+        if ($container.length) {
+            center($container);
+        }
+    }
 
     var hideMore = function () {
         var $overlay = $(".helphud-overlay");
@@ -242,29 +260,153 @@
                 self.addClass("helphud-shown").trigger($.Event("helphud-shown"));
             }
         });
-
     };
 
-    var build = function () {
-        var opts = {
-            margin: 3,
-            stick: 30,
-            barrier: 5
-        };
+    var positionMask = function($overlay) {
+        
+        var $elements=$overlay.data("elements");
+        var $container=$overlay.data("container");
 
+        var plane = new Plane($overlay);
+
+        $elements.each(function () {
+            if ($(this).data("highlight") !== false) {
+                plane.subtract(new Rect($(this)).explode(opts.margin));
+            }
+        });
+
+        $overlay.find("div.helphud-mask").remove();
+
+        plane.each(function (r) {
+            var e = $("<div class='helphud-mask'></div>");
+            e.css({
+                left: r.left,
+                top: r.top,
+                width: r.width,
+                height: r.height
+            });
+            $overlay.append(e);
+        });
+    };
+
+    function positionHint($hint) {
+        var position=$hint.data("position");
+        
+        var $element=$hint.data("element");
+        var offset = $element.offset();
+        var left = offset.left - opts.margin;
+        var top = offset.top - opts.margin;
+        var width = $element.outerWidth() + opts.margin * 2;
+        var height = $element.outerHeight() + opts.margin * 2;
+
+        // position hint
+
+        switch (position) {
+            case "left":
+                $hint.css({
+                    top: top + height / 2 - $hint.outerHeight() / 2 + "px",
+                    left: left - opts.barrier - opts.stick - $hint.outerWidth() + "px"
+                });
+                break;
+            case "right":
+                $hint.css({
+                    top: top + height / 2 - $hint.outerHeight() / 2 + "px",
+                    left: left + width + opts.barrier + opts.stick + "px"
+                });
+                break;
+            case "top":
+                $hint.css({
+                    top: top - opts.barrier - opts.stick - $hint.outerHeight() + "px",
+                    left: left + width / 2 - $hint.outerWidth() / 2 + "px"
+                });
+                break;
+            case "center":
+                $hint.css({
+                    top: top + height / 2 - $hint.outerHeight() / 2 + "px",
+                    left: left + width / 2 - $hint.outerWidth() / 2 + "px"
+                });
+                break;
+            default: // bottom
+                $hint.css({
+                    top: top + height + opts.barrier + opts.stick + "px",
+                    left: left + width / 2 - $hint.outerWidth() / 2 + "px"
+                });
+        }
+
+        // position pointer
+
+        var $pointer=$hint.data("pointer");
+
+        switch (position) {
+            case "left":
+                $pointer.css({
+                    top: top,
+                    left: left - opts.stick - opts.barrier + "px",
+                    width: opts.stick + "px",
+                    height: height
+                }).addClass("helphud-pointer-left");
+                break;
+            case "right":
+                $pointer.css({
+                    top: top,
+                    left: left + width + opts.barrier + "px",
+                    width: opts.stick + "px",
+                    height: height
+                }).addClass("helphud-pointer-right");
+                break;
+            case "top":
+                $pointer.css({
+                    top: top - opts.stick - opts.barrier + "px",
+                    left: left + "px",
+                    width: width + "px",
+                    height: opts.stick + "px"
+                }).addClass("helphud-pointer-top");
+                break;
+            case "center":
+                $pointer.remove();
+                break;
+            default: // bottom
+                $pointer.css({
+                    top: top + height + opts.barrier + "px",
+                    left: left + "px",
+                    width: width + "px",
+                    height: opts.stick + "px"
+                }).addClass("helphud-pointer-bottom");
+        }
+        
+    }
+
+    function position($overlay) {
+        $overlay.height(Math.max($(document).height(), $(window).height()));
+        positionMask($overlay);
+        $overlay.find("div.helphud-tooltip").each(function() { positionHint($(this)); });
+        positionMore($overlay);
+    }
+
+    var build = function () {
         var $body = $("body");
 
         var $container = this;
 
-        var plane = new Plane($container);
+        // filter duplicate data-intro values
 
-        var $elements = $container.find('*[data-intro]:visible');
+        var selectors = [];
+        $(this).find('*[data-intro]:visible').each(function() {
+            var intro = $(this).attr('data-intro');
+            var selector = "*[data-intro=\""+intro+"\"]:visible:first";
+            if($.inArray(selector, selectors) < 0) {
+                selectors.push(selector);
+            }
+        });
+        var $elements = selectors.length > 0 ? $container.find(selectors.join(',')) : $container.find('*[data-intro]:visible');
 
-
-        // build the overlay
+        // build the div that will contain helphud hints and mask
 
         var $overlay = $("<div class='helphud-overlay'></div>");
-        $overlay.height(Math.max($(document).height(), $(window).height()));
+        $overlay.data("container", $container);
+        $overlay.data("elements", $elements);
+        $body.append($overlay);
+
         $overlay.on("click", function (e) {
             var $target = $(e.target);
 
@@ -305,143 +447,43 @@
                 hide();
             }
         });
-        $overlay.data("container", $container);
-        $body.append($overlay);
 
-        // build the mask geometry
-
-        $elements.each(function () {
-            if ($(this).data("highlight") !== false) {
-                plane.subtract(new Rect($(this)).explode(opts.margin));
-            }
-        });
-
-        // add the mask into dom
-
-        plane.each(function (r) {
-            var e = $("<div class='helphud-mask'></div>");
-            e.css({
-                left: r.left,
-                top: r.top,
-                width: r.width,
-                height: r.height
-            });
-            $overlay.append(e);
-        });
-
-        // build the pointers and tooltips
+        // build hints
 
         $elements.each(function () {
 
-                var $element = $(this);
-                var offset = $element.offset();
-                var left = offset.left - opts.margin;
-                var top = offset.top - opts.margin;
-                var width = $element.outerWidth() + opts.margin * 2;
-                var height = $element.outerHeight() + opts.margin * 2;
-                var position = $element.data("position") || "bottom";
+            var $element = $(this);
+            var position = $element.data("position") || "bottom";
 
-                // build the pointer
+            // build hint
 
-                var $pointer = $("<div class='helphud-pointer' ></div>");
+            var content = $element.data("intro");
 
-                switch (position) {
-                    case "left":
-                        $pointer.css({
-                            top: top,
-                            left: left - opts.stick - opts.barrier + "px",
-                            width: opts.stick + "px",
-                            height: height
-                        }).addClass("helphud-pointer-left");
-                        break;
-                    case "right":
-                        $pointer.css({
-                            top: top,
-                            left: left + width + opts.barrier + "px",
-                            width: opts.stick + "px",
-                            height: height
-                        }).addClass("helphud-pointer-right");
-                        break;
-                    case "top":
-                        $pointer.css({
-                            top: top - opts.stick - opts.barrier + "px",
-                            left: left + "px",
-                            width: width + "px",
-                            height: opts.stick + "px"
-                        }).addClass("helphud-pointer-top");
-                        break;
-                    case "center":
-                        $pointer = undefined;
-                        break;
-                    default:
-                        $pointer.css({
-                            top: top + height + opts.barrier + "px",
-                            left: left + "px",
-                            width: width + "px",
-                            height: opts.stick + "px"
-                        }).addClass("helphud-pointer-bottom");
-                }
-
-                if ($pointer) {
-                    $overlay.append($pointer);
-                }
-
-                // build the tooltip
-
-                var $text = $("<div class='helphud-tooltip' style='left:-10000px'></div>");
-                var content = $element.data("intro");
-
-                if (content.length > 0 && content.charAt(0) === '#') {
-                    $(content).contents().each(function () {
-                        $text.append(this);
-                    });
-                    $text.data("from", content);
-                } else {
-                    $text.html($element.data("intro"));
-                }
-
-                $overlay.append($text); // add to dom before positioning so it can autosize
-
-                switch (position) {
-                    case "left":
-                        $text.css({
-                            top: top + height / 2 - $text.outerHeight() / 2 + "px",
-                            left: left - opts.barrier - opts.stick - $text.outerWidth() + "px"
-                        });
-                        break;
-                    case "right":
-                        $text.css({
-                            top: top + height / 2 - $text.outerHeight() / 2 + "px",
-                            left: left + width + opts.barrier + opts.stick + "px"
-                        });
-                        break;
-                    case "top":
-                        $text.css({
-                            top: top - opts.barrier - opts.stick - $text.outerHeight() + "px",
-                            left: left + width / 2 - $text.outerWidth() / 2 + "px"
-                        });
-                        break;
-                    case "center":
-                        $text.css({
-                            top: top + height / 2 - $text.outerHeight() / 2 + "px",
-                            left: left + width / 2 - $text.outerWidth() / 2 + "px"
-                        });
-                        break;
-                    default:
-                        $text.css({
-                            top: top + height + opts.barrier + opts.stick + "px",
-                            left: left + width / 2 - $text.outerWidth() / 2 + "px"
-                        });
-                }
+            var hintId = "";
+            if (content.length > 0 && content.charAt(0) === '#') {
+                hintId = " "+content.substring(1);
             }
-        )
-        ;
+            
+            var $hint = $("<div class='helphud-tooltip"+hintId+"' style='left:-10000px'></div>");
+            $hint.data("element", $element);
+            $hint.data("position", position);
 
-        // if we have 'more' content, show that too
+            if (content.length > 0 && content.charAt(0) === '#') {
+                $(content).contents().each(function () {
+                    $hint.append(this);
+                });
+                $hint.data("from", content);
+            } else {
+                $hint.html($element.data("intro"));
+            }
 
-        if ($overlay.data("more")) {
-            showMore($overlay.data("more"));
-        }
+            $overlay.append($hint); // add to dom before positioning so it can autosize
+
+            // build pointer
+            var $pointer = $("<div class='helphud-pointer' ></div>");
+            $overlay.append($pointer);
+            $hint.data("pointer", $pointer);
+        });
 
         // show panels
 
@@ -453,20 +495,12 @@
             }
         });
 
-        // handle window resizing
+        position($overlay);
 
-        var refresh = function () {
-            var more = $overlay.data("more");
-            destroy.apply($container);
-            build.apply($container);
-            $(".helphud-overlay").toggle(true);
-            if (more) {
-                showMore(more);
-            }
-        };
+        // handle window resizing and scrolling
         $(window)
-            .on("resize.helphud", throttle(100, refresh))
-            .on("scroll.helphud", throttle(100, refresh));
+            .on("resize.helphud", throttle(50, function() { position($overlay); }))
+            .on("scroll.helphud", throttle(50, function() { position($overlay); }));
     };
 
 
