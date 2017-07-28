@@ -148,14 +148,15 @@
 
     var hide = function () {
         var $overlay = $(".helphud-overlay"),
+            trigger = $overlay.data("trigger"),
             $container = $overlay.data("container");
         $container.removeClass("helphud-shown").trigger($.Event("helphud-hidden"));
         $overlay.fadeOut({
             complete: function () {
                 destroy.apply(this, arguments);
-
             }
         });
+        if (trigger) { trigger.focus(); }
     };
 
     var destroy = function () {
@@ -201,8 +202,89 @@
         });
     };
 
+    function findFocusables($container) {
+        function isFocusable(element) {
+            var name=element.nodeName.toLowerCase();
+            var tabIndex=$.attr(element, "tabindex");
+            var hasTabIndex=tabIndex !== null && tabIndex !== undefined;
+            var enabled=true;
+            if (name === "input" || name === "select" || name === "textarea" || name === "button" || name === "object") {
+                enabled = !element.disabled;
+                if (enabled) {
+                    var fieldset = $(element).closest("fieldset")[0];
+                    if (fieldset) {
+                        enabled=!fieldset.disabled;
+                    }
+                }
+            } else if ("a" === name) {
+                enabled = element.href||hasTabIndex;
+            } else {
+                enabled = hasTabIndex;
+            }
+
+            return enabled;
+        }
+        
+        var matches=[];
+        $container.find(":visible").each(function() {
+            if (isFocusable(this)) {
+                matches.push(this);
+            }
+        });
+        return $(matches);
+    }
+
+    function initFocus($container) {
+        var $focusable;
+        var median=$(document).scrollTop()+$(window).height()/2;
+        var $focusables=findFocusables($container);
+
+        $focusables.each(function() {
+            if ($focusable === undefined) {
+                // initial seed
+                $focusable = $(this);
+                return true;
+            }
+            
+            var $this=$(this);
+            if (Math.abs(median-$focusable.position().top) > Math.abs(median-$this.position().top)) {
+                $focusable=$this;
+            }
+        });
+        
+        if ($focusable && $focusable.length > 0) {
+            $focusable.get(0).focus();
+        }
+    }
+
+    function trapTab($container) {
+        return function(e) {
+            if (e.which === 9) { // tab
+                e.stopPropagation();
+
+                var $focusables=findFocusables($container);
+                
+                if ($focusables.length < 1) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                var firstFocusable=$focusables.get(0);
+                var lastFocusable=$focusables.get($focusables.length-1);
+                
+                if (!e.shiftKey && e.target === lastFocusable) {
+                    firstFocusable.focus();
+                    e.preventDefault();
+                } else if (e.shiftKey && e.target === firstFocusable) {
+                    lastFocusable.focus();
+                    e.preventDefault();
+                }
+            }
+        };
+    }
 
     var showMore = function (id) {
+        var trigger=document.activeElement;
         var $overlay = $(".helphud-overlay");
         $overlay.data("more", id);
 
@@ -210,8 +292,8 @@
         $overlay.append($mask);
         $mask.bind("click", hideMore);
 
-        var $container = $("<div class='helphud-more-container'><div class='helphud-more-body'></div><div class='helphud-more-commands'><a class='helphud-more-close' href='#'>Close</a></div></div>");
-
+        var $container = $("<div class='helphud-more-container'><div class='helphud-more-body' tabindex='0'></div><div class='helphud-more-commands'><a class='helphud-more-close' href='#'>Close</a></div></div>");
+        $container.data("trigger", trigger);
         var $body = $container.find(".helphud-more-body");
 
         var $marker = $("<div class='helphud-marker'></div>");
@@ -227,7 +309,21 @@
         $overlay.append($container);
         
         positionMore($overlay);
+
+        initFocus($container);
+        $container.on("keydown", trapTab($container));
+        $container.on("keydown", function(e) {
+            if (e.which === 27) { // esc
+                hideMore();
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        });
     };
+
+    function isMoreShown($overlay) {
+        return $overlay.find(".helphud-more-container").length>0;
+    }
 
     function positionMore($overlay) {
         var $mask=$overlay.find("div.helphud-more-mask");
@@ -244,12 +340,15 @@
         var $overlay = $(".helphud-overlay");
         var $more = $("#" + $overlay.data("more"));
         var $marker = $more.data("marker");
+        var $container=$overlay.find(".helphud-more-container");
+        var trigger=$container.data("trigger");
         $more.trigger($.Event("helphud-hidden"));
         $marker.before($more).remove();
         $more.removeData("marker").addClass("helphud-more");
+        $container.remove();
         $overlay.find(".helphud-more-mask").remove();
-        $overlay.find(".helphud-more-container").remove();
         $overlay.removeData("more");
+        if (trigger) { trigger.focus(); }
     };
 
     var show = function () {
@@ -384,8 +483,8 @@
     }
 
     var build = function () {
+        var trigger = document.activeElement;
         var $body = $("body");
-
         var $container = this;
 
         // filter duplicate data-intro values
@@ -405,13 +504,12 @@
         var $overlay = $("<div class='helphud-overlay'></div>");
         $overlay.data("container", $container);
         $overlay.data("elements", $elements);
+        $overlay.data("trigger", trigger);
         $body.append($overlay);
 
         $overlay.on("click", function (e) {
             var $target = $(e.target);
-
             var $layers = $target.add($target.parentsUntil(".helphud-overlay"));
-
 
             var more;
             $layers.each(function () {
@@ -447,6 +545,15 @@
                 hide();
             }
         });
+        
+        $overlay.on("keydown", trapTab($overlay));
+        $overlay.on("keydown", function(e) {
+            if (e.which === 27) { // esc
+                hide();
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        });
 
         // build hints
 
@@ -464,7 +571,7 @@
                 hintId = " "+content.substring(1);
             }
             
-            var $hint = $("<div class='helphud-tooltip"+hintId+"' style='left:-10000px'></div>");
+            var $hint = $("<div tabindex='0' class='helphud-tooltip"+hintId+"' style='left:-10000px'></div>");
             $hint.data("element", $element);
             $hint.data("position", position);
 
@@ -496,6 +603,8 @@
         });
 
         position($overlay);
+
+        initFocus($overlay);
 
         // handle window resizing and scrolling
         $(window)

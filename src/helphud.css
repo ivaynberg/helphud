@@ -71,10 +71,6 @@
     z-index: 3;
 }
 
-.helphud-tooltip:focus {
-    border: 1px solid red;
-}
-
 .helphud-pointer.helphud-pointer:before {
     content: ".";
     display: inline-block;
