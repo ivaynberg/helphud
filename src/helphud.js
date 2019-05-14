@@ -584,12 +584,15 @@
                 $hint.html($element.data("intro"));
             }
 
-            $overlay.append($hint); // add to dom before positioning so it can autosize
+			// Do not add hint if it contains no information
+			if ($hint.contents().length > 0) {
+				$overlay.append($hint); // add to dom before positioning so it can autosize
 
-            // build pointer
-            var $pointer = $("<div class='helphud-pointer' ></div>");
-            $overlay.append($pointer);
-            $hint.data("pointer", $pointer);
+				// build pointer
+				var $pointer = $("<div class='helphud-pointer' ></div>");
+				$overlay.append($pointer);
+				$hint.data("pointer", $pointer);
+			}
         });
 
         // show panels
